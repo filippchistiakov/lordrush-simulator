@@ -1,11 +1,12 @@
 {
-    "time": "2026-11-14 - 07:38",
+    "time": "2026-11-14 - 07:59",
     "attacker": {
         "name": "ShibaTechOnly",
         "heroes": {},
         "troops": {
-            "infantry_t10": 107114,
-            "lancer_t10": 45906
+            "infantry_t10": 99463,
+            "lancer_t10": 22953,
+            "marksman_t10": 30604
         },
         "stats": {
             "inf": {
@@ -39,20 +40,20 @@
         },
         "stats": {
             "inf": {
-                "attack": 48.0,
-                "defense": 48.0,
+                "attack": 51,
+                "defense": 51,
                 "lethality": 9.0,
                 "health": 9.0
             },
             "lanc": {
-                "attack": 48.0,
-                "defense": 48.0,
+                "attack": 51,
+                "defense": 51,
                 "lethality": 9.0,
                 "health": 9.0
             },
             "mark": {
-                "attack": 48.0,
-                "defense": 48.0,
+                "attack": 51,
+                "defense": 51,
                 "lethality": 9.0,
                 "health": 9.0
             }
@@ -60,22 +61,25 @@
         "joiner_heroes": {}
     },
     "sim_result": {
-        "attacker": 0,
-        "defender": 39291
+        "attacker": 36344,
+        "defender": 0
     },
-    "sim_rounds": 81,
+    "sim_rounds": 57,
     "sim_skills_used": {
         "attacker": [
-            "INFANTRY- Bands of Steel/1 (Lvl 1)      :  1 (63)               (DefenseUp)",
-            "LANCERS- Charge/1 (Lvl 1)               :  1 (13)               (DamageUp)",
-            "LANCERS- Ambusher/1 (Lvl 1)             :  17 (17)              (attack_order)"
+            "INFANTRY- Master Brawler/1 (Lvl 1)      :  1 (14)               (DamageUp)",
+            "INFANTRY- Bands of Steel/1 (Lvl 1)      :  1 (47)               (DefenseUp)",
+            "LANCERS- Charge/1 (Lvl 1)               :  1 (17)               (DamageUp)",
+            "LANCERS- Ambusher/1 (Lvl 1)             :  14 (14)              (attack_order)",
+            "MARKSMEN- Ranged Strike/1 (Lvl 1)       :  1 (40)               (DamageUp)",
+            "MARKSMEN- Volley/1 (Lvl 1)              :  2 (2) -Extra: 1530.4 (DamageUp)"
         ],
         "defender": [
-            "INFANTRY- Master Brawler/1 (Lvl 1)      :  1 (12)               (DamageUp)",
-            "INFANTRY- Bands of Steel/1 (Lvl 1)      :  1 (62)               (DefenseUp)",
-            "LANCERS- Ambusher/1 (Lvl 1)             :  8 (8)                (attack_order)",
-            "MARKSMEN- Ranged Strike/1 (Lvl 1)       :  1 (46)               (DamageUp)",
-            "MARKSMEN- Volley/1 (Lvl 1)              :  7 (7) -Extra: 6082.1 (DamageUp)"
+            "INFANTRY- Bands of Steel/1 (Lvl 1)      :  1 (26)               (DefenseUp)",
+            "LANCERS- Charge/1 (Lvl 1)               :  1 (7)                (DamageUp)",
+            "LANCERS- Ambusher/1 (Lvl 1)             :  7 (7)                (attack_order)",
+            "MARKSMEN- Ranged Strike/1 (Lvl 1)       :  1 (57)               (DamageUp)",
+            "MARKSMEN- Volley/1 (Lvl 1)              :  5 (5) -Extra: 3591.4 (DamageUp)"
         ]
     }
 }

@@ -1,89 +1,122 @@
-# Ryo's WOS Battle simulator
+# Lordrush Battle Simulator & Benchmark
+
+A multi-core battle simulator and troop-ratio optimizer adapted for **Lordrush**, based on [ryo-HIT-1589/wos-simulator](https://github.com).
+
+## What's Changed
+
+* **Lordrush Hero Naming & Skills:** Hero rosters, skill mechanics, and CSV skill tables (`skills/Fitz_hero_skills.csv` & `fighters_data/fighters_heroes.json`) are mapped to **Lordrush** characters (e.g., *Sebastian, Hera, Valky, Mortis, Isabelle, Jack, Porter, Rita, Bane, Hyeri, Miko, Cyprus*).
+* **Single-File Config Benchmark (`run_benchmark.py` & `run_bear_benchmark.py`):** Instead of editing multiple JSON files before every test, all fighter stats, troop tiers, march sizes, hero skill levels, and ratio ranges are configured directly inside the `CONFIG` dictionary in the runner scripts.
+* **Parallel Execution & CSV Export:** Uses all available CPU cores (`ProcessPoolExecutor`) to simulate hundreds of troop ratios across thousands of iterations and exports summary and detailed breakdowns to CSV (`benchmark_summary.csv`, `benchmark_detailed.csv`, `bear_hunt_results.csv`).
+* **Auto-Generated Narrow Configs:** At the end of a PvP benchmark run, the script automatically prints ready-to-paste `CONFIG` ratio bounds for the **TOP-20** setups and all setups with a **50%+ Win Rate** so you can quickly run a second pass with `STEP: 1`.
 
 ---
 
-This is still a work in progress.
-The simulator does not support FC troops yet. FC troops skills will be added soon.
-Only the heroes and attributes in green in [Fitz Hero Skill Spreadsheet](https://docs.google.com/spreadsheets/d/1q-i8auhNUcwU6-eUGvqGdJ4Xf2yswV6oo6z-KG1RJMQ) have been tested (limited testing for now).
-Feel free to test and give feedback.
+## Project Structure
 
-# HOW TO USE
+* `run_benchmark.py` — Main entry point and `CONFIG` for **PvP / Garrison** simulations.
+* `run_bear_benchmark.py` — Entry point and `CONFIG` for **Bear Hunt** damage optimization.
+* `benchmark/main.py` — Core parallel simulation engine, ratio generator, and stats builder.
+* `benchmark/export_to_csv.py` — CSV report formatting and export logic.
+* `Base_classes/` — Underlying combat math, round resolution, and hero skill execution engine.
+* `skills/` & `assets/` — Hero skill definitions and compiled skill dictionaries.
 
-1. Edit `fighters_data\fighter_stats.json` to add your accounts bonus stats from a battle report
-2. You can add heroes stats and skill levels in `fighters_data\fighters_heroes.json` (if the hero stats are not included in the previous step stats)
-3. Edit fighters names, troops, heroes and joiner_heroes in `main.py`
-4. You can change `BattleRound.DEBUG` and `show_rounds_freq` in `main.py` to show rounds and more details
-5. run `main.py`
-6. You can print the round report using `f.format_report()`
-7. You can save a testcase using `f.save_testcase(testcase_file_path, result)`, by specifying the result from the actual game reports.
+---
 
-# Stats
+## How to Run
 
-Add your accounts stats to `fighters_data\fighter_stats.json`.
-You can add stats from a battle report (A report from a beast attack without heroes works). BUT, for more precision (since battle report only show 1 digit) it's better if you calculate them from Bonus Overview Section (click the Power next to your PFP). For example, for infantry Attack, sum the following :
+### 1. Install Dependencies
+Make sure Python 3.10+ is installed, then install the required packages from `requirements.txt`:
+```bash
+pip install -r requirements.txt
+```
 
--   Troops Attack (from Bonus Overview section)
--   Infantry Attack (from Bonus Overview section)
-    Also, you need to add:
--   Natalia's special bonus for Attack/defense (for example: +10% at 5 stars) ;
--   Jeronimo's special bonus for Lethality/Health (for example: +15% at 5 stars) ;
+### 2. Configure Your Battle (`run_benchmark.py`)
+Open `run_benchmark.py` and edit the `CONFIG` dictionary:
 
-Add your heroes stats to `fighters_data\fighters_heroes.json` (Hero overall stats in Stats tab of each hero). Might as well add hero skill levels.
-When using heroes, you then can simply specify the heroes names and the simulator will calculate the total bonus stats by adding fighters stats and heroes stats.
-Be careful when you're saving testcases, make sure your stats didn't change (Buffs, Facilities, Research, Hero upgrades, etc). If they changed, you need to update them in `fighters_data`.
+* **`STATS`:** Enter the 4 percentage values from your battle report (*Bonus Details*) in order: `[Attack, Defense, Lethality, Health]`.
+* **`HEROES`:** List your active heroes and their expedition skill levels (top-to-bottom from the right column in-game; use `0` for non-combat skills):
+  ```python
+  "HEROES": {
+      "Isabelle": (4, 4, 4),
+      "Bane": (3, 2),
+      "Porter": (1, 0, 1),
+  }
+  ```
+* **`INF`, `LAN`, `MARK`:** Pass either a fixed integer (e.g., `40`) or a `(min, max)` range tuple (e.g., `(45, 55)`). The benchmark automatically tests all combinations summing to `100%` using the defined `STEP`.
 
-# Troops
+### 3. Execute Benchmark
+Run the PvP optimizer:
+```bash
+python run_benchmark.py
+```
 
-You can specify the troops in the format `infantry_t7_fc2` (FC skills not yet supported but will be soon).
+Or run the Bear Hunt damage optimizer:
+```bash
+python run_bear_benchmark.py
+```
 
-# Heroes and Joiner heroes
+---
 
-Heroes and Joiner_heroes could be specified in one of the two following formats:
+## Example Output
 
-1. `{'Jessie': { 'skill_1_level': 1, 'skill_2_level': 0 } }`
-   If level specified is 0, the skill is skipped.
+```text
+================================================================================
+ATTACKER : ShibaTechOnly (153,020 t10) | Range: (40, 65)/(5, 25)/(20, 45) (step 1)
+           Heroes: [None] | Stats: INF: [43.4, 43.4, 12.0, 12.0] | LAN: [43.4, 43.4, 12.0, 12.0] | MAR: [43.4, 43.4, 12.0, 12.0]
+DEFENDER : MolterFort (150,000 t10) | Range: 40/30/30 (step 1)
+           Heroes: [None] | Stats: INF: [51, 51, 9.0, 9.0] | LAN: [51, 51, 9.0, 9.0] | MAR: [51, 51, 9.0, 9.0]
+SETTINGS : 100 sims/pair | Output: benchmark_summary.csv
+================================================================================
+Simulating PvP: 100%|██████████| 43600/43600 [00:40<00:00, 1075.02battle/s, Ratios: 436/436]
 
-2. OR `['Jessie', 'Jasser', 'molly']`
-   If this format is used, skill levels will be fetched in `fighters_data\fighters_heroes.json`. If not found, they will be considered at level 5 (only first skill for hero_joiners).
+Rank   | Ratio          | Win Rate  | W/L/D
+---------------------------------------------
+1      | 51/12/37       |   82.00% | 82/18/0
+2      | 52/10/38       |   79.00% | 79/21/0
+3      | 53/11/36       |   79.00% | 79/21/0
+4      | 54/12/34       |   79.00% | 79/21/0
+5      | 54/14/32       |   79.00% | 79/21/0
+6      | 50/12/38       |   78.00% | 78/22/0
+7      | 53/12/35       |   77.00% | 77/23/0
+8      | 53/15/32       |   77.00% | 77/23/0
+9      | 54/15/31       |   77.00% | 77/23/0
+10     | 49/17/34       |   76.00% | 76/24/0
+11     | 53/9/38        |   76.00% | 76/24/0
+12     | 54/13/33       |   76.00% | 76/24/0
+13     | 56/9/35        |   76.00% | 76/24/0
+14     | 56/13/31       |   76.00% | 76/24/0
+15     | 53/8/39        |   75.00% | 75/25/0
+16     | 53/16/31       |   75.00% | 75/24/1
+17     | 54/17/29       |   75.00% | 75/25/0
+18     | 56/11/33       |   75.00% | 75/25/0
+19     | 57/10/33       |   75.00% | 75/25/0
+20     | 47/18/35       |   74.00% | 74/26/0
 
-You can use `attacker.add_heroes_stats()` to add the specified heroes bonus stats (if they are not included already in `fighters_data\fighter_stats.json`).
+--- TOP-20 CONFIG (Total: 20) ---
+        "STEP": 1,
+        "INF": (47, 57),
+        "LAN": (8, 18),
+        "ARC": (29, 39),
 
-# Skills
+--- WR 50%+ CONFIG (Total: 320) ---
+        "STEP": 1,
+        "INF": (40, 64),
+        "LAN": (5, 25),
+        "ARC": (22, 45),
+```
 
-Improving the simulator accuracy means finding the correct attributes for the different hero and troop skills.
+---
 
--   All hero skills attributes are summarized in one spreadsheet called 'Fitz_hero_skills.csv'.
--   Access the latest update of skills registery here: [Fitz Hero Skill Spreadsheet](https://docs.google.com/spreadsheets/d/1q-i8auhNUcwU6-eUGvqGdJ4Xf2yswV6oo6z-KG1RJMQ)
--   Save the spreadsheet in csv format in the `skills` folder.
--   run `skills/export_hero_skills_dicts.py` to export hero dicts from the csv file to assets folder.
--   Feel free to modify the hero skills attributes for testing, and share feedback with us.
+## Updating Hero Skills (Optional)
 
-# Testcases
+If you modify `skills/Fitz_hero_skills.csv` to add new Lordrush heroes or adjust skill multipliers, recompile the internal dictionaries before running a simulation:
+```bash
+python skills/export_hero_skills_dicts.py
+```
 
-The last battle report is always saved in `last_battle_report.json`
+---
 
-It's recommended to save the testcases reports by specifying the actual result from the game report of the battle using `f.save_testcase(testcase_file_path, result)` in `main.py`.
-If you run `check_testcases.py`, it will re-run all battles in the specified files in `testcases` folder, and check the difference to actual game report results.
-This is helpful if you intend to make changes to the skills data or the simulator logic. It allows you to make sure the simulator still works for previous testcases.
+## Credits
 
-For testcases with chance skills, it's recommended to run multiple battles in the game with the same squads, and the different results in the testcase list `game_report_result`.
-
-When using `check_testcases.py`:
-
--   You can specify the path to the testcases file or set it to 'all' to check all files in `testcases` folder
--   You can run simulations multiple times for each testcase by specifying `repeat`. This is recommeneded for chance skills. The simulation will not be repeated for files ending with `_nc` (not chance).
--   If a testcase dict contains a list of results in `game_report_result`, the average of these results will be considered for comparing against the simulations.
--   When repeating, if `combine_repeats = True` then the average result of the repeated simulation will be printed for each testcase, otherwise it will print individual repeated simulation result up to `max_show`.
-
-# CREDITS
-
-This is being made with the help of:
-
--   Expert nerds from [WOS Nerds Discord server](https://discord.gg/BW288dNExX)
--   Members from [HIT Alliance in State 1589](https://discord.gg/X6wpn7j3cC)
--   [SOS Simulator](https://github.com/request-laurent/sos.battle) by Request-Laurent
-
-Programming is not my profession, so the code for this simulator might look ugly to some people lol
-But I'm hoping that, with your help, we can at least make it an accuate and reliable simulator
-
-[1589] HIT-Ryo
+* Original combat engine by **HIT-Ryo** ([ryo-HIT-1589/wos-simulator](https://github.com)).
+* Skill spreadsheet structure based on **Fitz's Hero Skill Spreadsheet** and community testing from WOS Nerds & HIT Alliance.
