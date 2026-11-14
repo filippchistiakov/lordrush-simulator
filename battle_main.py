@@ -1,9 +1,6 @@
-import json
+from Base_classes.BattleRound import BattleRound
 from Base_classes.Fight import Fight
 from Base_classes.Fighter import Fighter
-from Base_classes.StatsBonus import StatsBonus
-from Base_classes.BattleRound import BattleRound
-from Base_classes.UnitType import UnitType
 from Base_classes.JsonUtil import JsonUtil
 
 ###############################################
@@ -11,10 +8,9 @@ from Base_classes.JsonUtil import JsonUtil
 ###############################################
 
 JsonUtil.load_fighters_data(
-    fighters_stats_path = "fighters_data/fighters_stats.json",      # File containing the fighters stats
-    fighters_heroes_path = "fighters_data/fighters_heroes.json"     # File containing the fighters heroes stats
+    fighters_stats_path="fighters_data/fighters_stats.json",  # File containing the fighters stats
+    fighters_heroes_path="fighters_data/fighters_heroes.json"  # File containing the fighters heroes stats
 )
-
 
 ###############################################
 # ATTACKER DATA
@@ -22,16 +18,6 @@ JsonUtil.load_fighters_data(
 
 attacker_name = "Nitro"
 attacker = Fighter(attacker_name)
-
-# attacker.heroes = ["Sergey"]  #["Jessie", "Sergey", "Molly"]      # if this format is used, skill levels are fetched at 'fighter_heroes.json'; Level 5 if not found
-
-### OR you can specify skill levels by using:
-# attacker.heroes = {
-#     "Jessie" : {
-#         "skill_1_level": 2,
-#         "skill_2_level": 2,
-#     }
-# }
 
 attacker.troops = {
     "infantry_t10_fc5" : 50000,

@@ -113,7 +113,7 @@ def make_hero_dicts(csv_file_path = 'skills/Fitz_hero_skills.csv', export_dicts_
 
 if __name__ == '__main__':
     
-    csv_file_path = 'skills/Fitz_hero_skills.csv'
-    export_dicts_path = "assets/hero_skills/"
+    csv_file_path = 'Fitz_hero_skills_lordrush.csv'
+    export_dicts_path = ""
 
     make_hero_dicts(csv_file_path, export_dicts_path)
