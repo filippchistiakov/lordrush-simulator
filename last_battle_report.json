@@ -1,37 +1,36 @@
 {
-    "time": "2026-11-14 - 07:17",
+    "time": "2026-11-14 - 07:38",
     "attacker": {
         "name": "ShibaTechOnly",
         "heroes": {},
         "troops": {
-            "infantry_t10": 84161,
-            "lancer_t10": 22953,
-            "marksman_t10": 45906
+            "infantry_t10": 107114,
+            "lancer_t10": 45906
         },
         "stats": {
             "inf": {
-                "attack": 26.3,
-                "defense": 19.5,
-                "lethality": 20.5,
-                "health": 28.0
+                "attack": 43.4,
+                "defense": 43.4,
+                "lethality": 12.0,
+                "health": 12.0
             },
             "lanc": {
-                "attack": 22.3,
-                "defense": 17.0,
-                "lethality": 20.5,
-                "health": 19.0
+                "attack": 43.4,
+                "defense": 43.4,
+                "lethality": 12.0,
+                "health": 12.0
             },
             "mark": {
-                "attack": 43.3,
-                "defense": 17.0,
-                "lethality": 29.5,
-                "health": 19.0
+                "attack": 43.4,
+                "defense": 43.4,
+                "lethality": 12.0,
+                "health": 12.0
             }
         },
         "joiner_heroes": {}
     },
     "defender": {
-        "name": "ShibaNexus210",
+        "name": "MolterFort",
         "heroes": {},
         "troops": {
             "infantry_t10": 60000,
@@ -40,46 +39,43 @@
         },
         "stats": {
             "inf": {
-                "attack": 30,
-                "defense": 30,
-                "lethality": 30,
-                "health": 30
+                "attack": 48.0,
+                "defense": 48.0,
+                "lethality": 9.0,
+                "health": 9.0
             },
             "lanc": {
-                "attack": 30,
-                "defense": 30,
-                "lethality": 30,
-                "health": 30
+                "attack": 48.0,
+                "defense": 48.0,
+                "lethality": 9.0,
+                "health": 9.0
             },
             "mark": {
-                "attack": 30,
-                "defense": 30,
-                "lethality": 30,
-                "health": 30
+                "attack": 48.0,
+                "defense": 48.0,
+                "lethality": 9.0,
+                "health": 9.0
             }
         },
         "joiner_heroes": {}
     },
     "sim_result": {
         "attacker": 0,
-        "defender": 33762
+        "defender": 39291
     },
-    "sim_rounds": 47,
+    "sim_rounds": 81,
     "sim_skills_used": {
         "attacker": [
-            "INFANTRY- Master Brawler/1 (Lvl 1)      :  1 (6)                (DamageUp)",
-            "INFANTRY- Bands of Steel/1 (Lvl 1)      :  1 (32)               (DefenseUp)",
-            "LANCERS- Charge/1 (Lvl 1)               :  1 (5)                (DamageUp)",
-            "LANCERS- Ambusher/1 (Lvl 1)             :  5 (5)                (attack_order)",
-            "MARKSMEN- Ranged Strike/1 (Lvl 1)       :  1 (33)               (DamageUp)",
-            "MARKSMEN- Volley/1 (Lvl 1)              :  4 (4) -Extra: 3640.5 (DamageUp)"
+            "INFANTRY- Bands of Steel/1 (Lvl 1)      :  1 (63)               (DefenseUp)",
+            "LANCERS- Charge/1 (Lvl 1)               :  1 (13)               (DamageUp)",
+            "LANCERS- Ambusher/1 (Lvl 1)             :  17 (17)              (attack_order)"
         ],
         "defender": [
-            "INFANTRY- Bands of Steel/1 (Lvl 1)      :  1 (28)               (DefenseUp)",
-            "LANCERS- Charge/1 (Lvl 1)               :  1 (10)               (DamageUp)",
-            "LANCERS- Ambusher/1 (Lvl 1)             :  7 (7)                (attack_order)",
-            "MARKSMEN- Ranged Strike/1 (Lvl 1)       :  1 (39)               (DamageUp)",
-            "MARKSMEN- Volley/1 (Lvl 1)              :  3 (3) -Extra: 3310.7 (DamageUp)"
+            "INFANTRY- Master Brawler/1 (Lvl 1)      :  1 (12)               (DamageUp)",
+            "INFANTRY- Bands of Steel/1 (Lvl 1)      :  1 (62)               (DefenseUp)",
+            "LANCERS- Ambusher/1 (Lvl 1)             :  8 (8)                (attack_order)",
+            "MARKSMEN- Ranged Strike/1 (Lvl 1)       :  1 (46)               (DamageUp)",
+            "MARKSMEN- Volley/1 (Lvl 1)              :  7 (7) -Extra: 6082.1 (DamageUp)"
         ]
     }
 }

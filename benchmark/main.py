@@ -43,7 +43,6 @@ def _build_fighter(side_cfg: dict | str) -> Fighter:
     return Fighter(name)
 
 
-
 def _to_range(val: int | tuple[int, int], step: int) -> range:
     if isinstance(val, int):
         return range(val, val + 1)
@@ -159,6 +158,21 @@ def _normalize_csv_cfg(cfg: dict) -> dict:
 
 
 def execute_benchmark(cfg: dict) -> None:
+    def _print_ratio_bounds(label: str, items: list[dict]) -> None:
+        """Prints min/max troop ratios on English formatted as a ready-to-paste CONFIG snippet."""
+        if not items:
+            print(f"\n--- {label}: No matching combinations found ---")
+            return
+
+        parsed = [tuple(map(int, x["ratio"].split("/"))) for x in items]
+        infs, lans, marks = zip(*parsed)
+
+        print(f"\n--- {label} (Total: {len(items)}) ---")
+        print('        "STEP": 1,')
+        print(f'        "INF": ({min(infs)}, {max(infs)}),')
+        print(f'        "LAN": ({min(lans)}, {max(lans)}),')
+        print(f'        "MARK": ({min(marks)}, {max(marks)}),')
+
     JsonUtil.load_fighters_data("fighters_data/fighters_stats.json", "fighters_data/fighters_heroes.json")
     att_cfg, def_cfg = cfg["ATTACKER"], cfg["DEFENDER"]
 
@@ -171,7 +185,8 @@ def execute_benchmark(cfg: dict) -> None:
     def_fighter = _build_fighter(def_cfg)
 
     tasks = [(r, def_ratios, cfg) for r in att_ratios]
-    raw = _run_parallel(_sim_pvp_batch, tasks, len(def_ratios) * cfg["SIMULATIONS_PER_PAIR"], pickle.dumps(att_fighter), pickle.dumps(def_fighter), "Simulating PvP")
+    raw = _run_parallel(_sim_pvp_batch, tasks, len(def_ratios) * cfg["SIMULATIONS_PER_PAIR"], pickle.dumps(att_fighter),
+                        pickle.dumps(def_fighter), "Simulating PvP")
 
     summary = sorted([x[0] for x in raw], key=lambda x: x["win_rate"], reverse=True)
     detailed = sorted([item for x in raw for item in x[1]], key=lambda x: (x["attacker"], x["defender"]))
@@ -181,6 +196,12 @@ def execute_benchmark(cfg: dict) -> None:
     print(f"\n{'Rank':<6} | {'Ratio':<14} | {'Win Rate':<9} | {'W/L/D'}")
     for i, r in enumerate(summary[:top_n], 1):
         print(f"{i:<6} | {r['ratio']:<14} | {r['win_rate']:>7.2f}% | {r['wins']}/{r['losses']}/{r['draws']}")
+
+    # Вывод диапазонов для Top-20 и WR >= 50%
+    _print_ratio_bounds("TOP-20 CONFIG", summary[:20])
+    wr_50_plus = [r for r in summary if r["win_rate"] >= 50.0]
+    _print_ratio_bounds("WR 50%+ CONFIG", wr_50_plus)
+
 
 
 def execute_bear_benchmark(cfg: dict) -> None:
@@ -200,7 +221,8 @@ def execute_bear_benchmark(cfg: dict) -> None:
                 setattr(grp, k, 0)
 
     tasks = [(r, cfg) for r in att_ratios]
-    results = _run_parallel(_sim_bear_batch, tasks, cfg["SIMULATIONS_PER_RATIO"], pickle.dumps(att_fighter), pickle.dumps(bear), "Simulating Bear")
+    results = _run_parallel(_sim_bear_batch, tasks, cfg["SIMULATIONS_PER_RATIO"], pickle.dumps(att_fighter),
+                            pickle.dumps(bear), "Simulating Bear")
 
     results.sort(key=lambda x: x["avg_damage"], reverse=True)
     save_bear_csv(_normalize_csv_cfg(cfg), results)
