@@ -114,18 +114,48 @@ def _normalize_csv_cfg(cfg: dict) -> dict:
             "DEF_TOTAL_TROOPS": dfn.get("TROOPS", 0)}
 
 
-def _print_header(cfg: dict, is_bear: bool = False) -> None:
+def _extract_fighter_info(side_cfg: dict) -> dict:
+    """Извлекает итоговые статы и героев из объекта Fighter для отображения в шапке."""
+    name = side_cfg.get("NAME", "Unknown")
+    raw_stats = side_cfg.get("STATS") or JsonUtil.fighter_stats.get(name, {})
+    all_heroes = getattr(JsonUtil, "fighters_heroes", getattr(JsonUtil, "fighter_heroes", {}))
+    raw_heroes = side_cfg.get("HEROES") if "HEROES" in side_cfg else all_heroes.get(name, {})
+    return {
+        "name": name,
+        "troops": side_cfg["TROOPS"],
+        "tier": side_cfg["TIER"],
+        "range": f"{side_cfg['INF']}/{side_cfg['LAN']}/{side_cfg['ARC']}",
+        "step": side_cfg.get("STEP", 1),
+        "stats": raw_stats,
+        "heroes": raw_heroes,
+    }
+
+
+def _print_header(cfg: dict, att_info: dict, def_info: dict | None = None) -> None:
     print("\n" + "=" * 80)
-    for role, key in (("ATTACKER", "ATTACKER"), ("DEFENDER", "DEFENDER")):
-        if key not in cfg:
+    for role, info in (("ATTACKER", att_info), ("DEFENDER", def_info)):
+        if not info:
             continue
-        s = cfg[key]
-        heroes = ", ".join(f"{h}{tuple(v)}" for h, v in s.get("HEROES", {}).items()) or "None"
-        stats = " | ".join(f"{k[:3].upper()}: {v}" for k, v in s.get("STATS", {}).items()) or "From JSON"
+        heroes_list = []
+        for h, v in info["heroes"].items():
+            if isinstance(v, (list, tuple)):
+                heroes_list.append(f"{h}{tuple(v)}")
+            elif isinstance(v, dict) and "skill_levels" in v:
+                heroes_list.append(f"{h}{tuple(v['skill_levels'].values())}")
+            else:
+                heroes_list.append(str(h))
+        heroes_str = ", ".join(heroes_list) or "None"
+        stats_str = " | ".join(f"{k[:3].upper()}: {v}" for k, v in info["stats"].items()) or "Not Found"
+
         print(
-            f"{role:<9}: {s.get('NAME', 'Unknown')} ({s['TROOPS']:,} {s['TIER']}) | Range: {s['INF']}/{s['LAN']}/{s['ARC']} (step {s.get('STEP', 1)})\n           Heroes: [{heroes}] | Stats: {stats}")
-    print(
-        f"TARGET   : Bear Hunt ({cfg['BEAR_TROOPS']}) | Runs/ratio: {cfg['SIMULATIONS_PER_RATIO']}" if is_bear else f"SETTINGS : {cfg['SIMULATIONS_PER_PAIR']} sims/pair | Output: {cfg['SUMMARY_CSV_FILE']}")
+            f"{role:<9}: {info['name']} ({info['troops']:,} {info['tier']}) | Range: {info['range']} (step {info['step']})\n"
+            f"           Heroes: [{heroes_str}] | Stats: {stats_str}"
+        )
+
+    if def_info is None:
+        print(f"TARGET   : Bear Hunt ({cfg['BEAR_TROOPS']}) | Runs/ratio: {cfg['SIMULATIONS_PER_RATIO']}")
+    else:
+        print(f"SETTINGS : {cfg['SIMULATIONS_PER_PAIR']} sims/pair | Output: {cfg['SUMMARY_CSV_FILE']}")
     print("=" * 80)
 
 
@@ -145,12 +175,13 @@ def execute_benchmark(cfg: dict) -> None:
     if not att_r or not def_r:
         return print("Error: No ratio combinations sum up to 100%.")
 
-    _print_header(cfg)
-    raw = _run_parallel(_sim_pvp_batch, [(r, def_r, cfg) for r in att_r], len(def_r) * cfg["SIMULATIONS_PER_PAIR"],
-                        pickle.dumps(_build_fighter(att_c)), pickle.dumps(_build_fighter(def_c)), "Simulating PvP")
-    summary = sorted([x[0] for x in raw], key=lambda x: x["win_rate"], reverse=True)
-    save_to_csv(_normalize_csv_cfg(cfg), summary,
-                sorted([i for x in raw for i in x[1]], key=lambda x: (x["attacker"], x["defender"])))
+    att_fighter = _build_fighter(att_c)
+    def_fighter = _build_fighter(def_c)
+    _print_header(cfg, _extract_fighter_info(att_c), _extract_fighter_info(def_c))
+
+    raw = _run_parallel(_sim_pvp_batch, [(r, def_r, cfg) for r in att_r], len(def_r) * cfg["SIMULATIONS_PER_PAIR"], pickle.dumps(att_fighter), pickle.dumps(def_fighter), "Simulating PvP")
+    summary = sorted([s for s, _ in raw], key=lambda x: x["win_rate"], reverse=True)
+    save_to_csv(_normalize_csv_cfg(cfg), summary, sorted([i for _, det in raw for i in det], key=lambda x: (x["attacker"], x["defender"])))
 
     print(f"\n{'Rank':<6} | {'Ratio':<14} | {'Win Rate':<9} | {'W/L/D'}\n" + "-" * 45)
     for i, r in enumerate(summary[:cfg.get("TOP_N_PRINT", len(summary))], 1):
@@ -166,7 +197,9 @@ def execute_bear_benchmark(cfg: dict) -> None:
     if not att_r:
         return print("Error: No ratio combinations sum up to 100%.")
 
-    _print_header(cfg, is_bear=True)
+    att_fighter = _build_fighter(att_c)
+    _print_header(cfg, _extract_fighter_info(att_c), def_info=None)
+
     bear = Fighter("Bear")
     bear.heroes = []
     for grp in vars(bear.stats).values():
@@ -174,37 +207,9 @@ def execute_bear_benchmark(cfg: dict) -> None:
             for k in vars(grp):
                 setattr(grp, k, 0)
 
-    results = sorted(_run_parallel(_sim_bear_batch, [(r, cfg) for r in att_r], cfg["SIMULATIONS_PER_RATIO"],
-                                   pickle.dumps(_build_fighter(att_c)), pickle.dumps(bear), "Simulating Bear"),
-                     key=lambda x: x["avg_damage"], reverse=True)
+    results = sorted(_run_parallel(_sim_bear_batch, [(r, cfg) for r in att_r], cfg["SIMULATIONS_PER_RATIO"], pickle.dumps(att_fighter), pickle.dumps(bear), "Simulating Bear"), key=lambda x: x["avg_damage"], reverse=True)
     save_bear_csv(_normalize_csv_cfg(cfg), results)
 
     print(f"\n{'Rank':<6} | {'Ratio':<14} | {'Avg Damage':<14} | {'Survived'}\n" + "-" * 52)
-    for i, r in enumerate(results[:cfg.get("TOP_N_PRINT", len(results))], 1):
-        print(f"{i:<6} | {r['ratio']:<14} | {r['avg_damage']:>14.1f} | {r['avg_survived']:>8.1f}")
-
-
-def execute_bear_benchmark(cfg: dict) -> None:
-    JsonUtil.load_fighters_data("fighters_data/fighters_stats.json", "fighters_data/fighters_heroes.json")
-    att_c = cfg["ATTACKER"]
-    att_r = collect_ratios(att_c["INF"], att_c["LAN"], att_c["ARC"], att_c.get("STEP", 1))
-    if not att_r:
-        return print("Error: No ratio combinations sum up to 100%.")
-
-    _print_header(cfg, is_bear=True)
-    bear = Fighter("Bear")
-    bear.heroes = []
-    for grp in vars(bear.stats).values():
-        if hasattr(grp, "__dict__"):
-            for k in vars(grp):
-                setattr(grp, k, 0)
-
-    results = sorted(_run_parallel(_sim_bear_batch, [(r, cfg) for r in att_r], cfg["SIMULATIONS_PER_RATIO"],
-                                   pickle.dumps(_build_fighter(att_c)), pickle.dumps(bear), "Simulating Bear"),
-                     key=lambda x: x["avg_damage"], reverse=True)
-    save_bear_csv(_normalize_csv_cfg(cfg), results)
-
-    _print_header(cfg, is_bear=True)
-    print(f"{'Rank':<6} | {'Ratio':<14} | {'Avg Damage':<14} | {'Survived'}\n" + "-" * 52)
     for i, r in enumerate(results[:cfg.get("TOP_N_PRINT", len(results))], 1):
         print(f"{i:<6} | {r['ratio']:<14} | {r['avg_damage']:>14.1f} | {r['avg_survived']:>8.1f}")
